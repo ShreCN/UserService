@@ -39,7 +39,7 @@ public class UserService {
     public Token login(String email, String password) {
 
 //        1. Verify user exists
-        Optional<User> user = userRepository.getUserByEmail(email);
+        Optional<User> user = userRepository.findByEmail(email);
         if(user.isEmpty()){
             throw new UserNotFoundException("User not found for email "+email);
         }
