@@ -52,22 +52,30 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
             throws Exception {
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-                .oidc(Customizer.withDefaults());	// Enable OpenID Connect 1.0
-        http
-                // Redirect to the login page when not authenticated from the
-                // authorization endpoint
-                .exceptionHandling((exceptions) -> exceptions
-                        .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                        )
-                )
-                // Accept access tokens for User Info and/or Client Registration
-                .oauth2ResourceServer((resourceServer) -> resourceServer
-                        .jwt(Customizer.withDefaults()));
+//        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+//        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+//                .oidc(Customizer.withDefaults());	// Enable OpenID Connect 1.0
+//        http
+//                // Redirect to the login page when not authenticated from the
+//                // authorization endpoint
+//                .exceptionHandling((exceptions) -> exceptions
+//                        .defaultAuthenticationEntryPointFor(
+//                                new LoginUrlAuthenticationEntryPoint("/login"),
+//                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+//                        )
+//                )
+//                // Accept access tokens for User Info and/or Client Registration
+//                .oauth2ResourceServer((resourceServer) -> resourceServer
+//                        .jwt(Customizer.withDefaults()));
+//
+//        return http.build();
 
+        http
+                .authorizeHttpRequests((authz) -> authz
+                                .anyRequest().permitAll()
+//                        .and().cors().disable()
+//                        .csrf().disable()
+                );
         return http.build();
     }
 
@@ -174,20 +182,18 @@ public class SecurityConfig {
 //            }
 //        };
 //    }
-@Bean
-public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
-    return (context) -> {
-        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-            context.getClaims().claims((claims) -> {
-                Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
-                        .stream()
-                        .map(c -> c.replaceFirst("^ROLE_", ""))
-                        .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-                claims.put("roles", roles);
-            });
-        }
-    };
-}
-
-
+//@Bean
+//public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
+//    return (context) -> {
+//        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+//            context.getClaims().claims((claims) -> {
+//                Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
+//                        .stream()
+//                        .map(c -> c.replaceFirst("^ROLE_", ""))
+//                        .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+//                claims.put("roles", roles);
+//            });
+//        }
+//    };
+//}
 }

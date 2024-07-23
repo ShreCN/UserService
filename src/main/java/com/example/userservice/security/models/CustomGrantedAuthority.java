@@ -11,12 +11,12 @@ import org.springframework.security.core.GrantedAuthority;
 @Setter
 @NoArgsConstructor
 public class CustomGrantedAuthority implements GrantedAuthority {
-    private String autority;
+    private String authority;
     public CustomGrantedAuthority(Role role){
-        this.autority = role.getValue();
+        this.authority = role.getValue();
     }
     @Override
     public String getAuthority() {
-        return autority;
+        return authority;
     }
 }

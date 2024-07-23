@@ -38,4 +38,12 @@ public class UserController {
         }
         return UserResponseDto.from(user);
     }
+
+    @GetMapping("/eureka")
+    public UserResponseDto serviceDiscovery(){
+        /* testing Eureka Service Discovery */
+        System.out.println("Shreyas Userservice application is Working !!!!!");
+        return new UserResponseDto();
+    }
+
 }
