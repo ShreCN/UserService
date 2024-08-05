@@ -1,11 +1,17 @@
 package com.example.userservice.services;
 
+import com.example.userservice.configurations.KafkaProducerConfig;
+import com.example.userservice.dtos.SendMessageDto;
+import com.example.userservice.dtos.UserResponseDto;
 import com.example.userservice.exceptions.UserNotFoundException;
 import com.example.userservice.models.User;
 import com.example.userservice.models.Token;
 import com.example.userservice.repositories.TokenRepository;
 import com.example.userservice.repositories.UserRepository;
 import org.apache.commons.lang3.RandomStringUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,27 +19,54 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserService {
     private UserRepository userRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     private final TokenRepository tokenRepository;
+    private KafkaTemplate<String, String> kafkaTemplate;
+    private ObjectMapper objectMapper;
 
     public UserService(UserRepository userRepository,
                        BCryptPasswordEncoder bCryptPasswordEncoder,
-                       TokenRepository tokenRepository){
+                       TokenRepository tokenRepository,
+                       KafkaTemplate<String, String> kafkaTemplate,
+                       ObjectMapper objectMapper){
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
     }
 
-    public User signUp(String name, String email, String password) {
+    public User signUp(String name, String email, String password) throws ExecutionException, InterruptedException {
         User user = new User();
         user.setName(name);
         user.setEmail(email);
         user.setHashedPassword(bCryptPasswordEncoder.encode(password));
-        return userRepository.save(user);
+
+        User savedUser = userRepository.save(user);
+
+        // send welcome mail for successful sign up
+        // Kafka Publish sendMail Event
+        SendMessageDto messageDto = new SendMessageDto();
+        messageDto.setTo(savedUser.getEmail());
+        messageDto.setFrom("shre74024@gmail.com");
+        messageDto.setBody("Hope you have great Shopping experience");
+        messageDto.setSubject("Welcome !!!!!");
+        CompletableFuture<SendResult<String, String>> result = null;
+        try {
+             result = kafkaTemplate.send(
+                    "sendEmail",
+                    objectMapper.writeValueAsString(messageDto));
+        }catch (Exception e){
+            System.out.println("Object Mapper Exception occurred");
+        }
+        System.out.println(result.get());
+        return savedUser;
     }
 
     public Token login(String email, String password) {

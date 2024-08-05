@@ -8,6 +8,8 @@ import com.example.userservice.models.Token;
 import com.example.userservice.services.UserService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.ExecutionException;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -16,7 +18,7 @@ public class UserController {
         this.userService = userService;
     }
     @PostMapping("/signup")
-    public UserResponseDto signUp(@RequestBody UserSignUpRequestDto userSignUpRequestDto){
+    public UserResponseDto signUp(@RequestBody UserSignUpRequestDto userSignUpRequestDto) throws ExecutionException, InterruptedException {
         User user = userService.signUp(userSignUpRequestDto.getName(),
                             userSignUpRequestDto.getEmail(),
                             userSignUpRequestDto.getPassword());
